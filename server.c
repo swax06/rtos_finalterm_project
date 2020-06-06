@@ -11,7 +11,6 @@
 #include<arpa/inet.h>
 #include "server.h"
 #include "server_ext.h"
-#include "opencv2/opencv.hpp"
 #include<pthread.h>
 
 int cli = 0, temp_ind = 0, grp = 0;

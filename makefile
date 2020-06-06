@@ -11,7 +11,7 @@ main.o: main.c
 	$(CC) -c main.c
 
 server.o: server.c server.h
-	$(CC) -c server.c $(LIBS)
+	$(CC) -c server.c
 
 server_ext.o: server_ext.c server_ext.h
 	$(CC) -c server_ext.c $(LIBS)
