@@ -125,26 +125,27 @@ void* v_out(void *inp) {
 }
 
 void* v_inp(void *inp) {
-	Mat img, flippedFrame;
+	Mat img, flippedFrame, imgGray;
 	int height = cap.get(CAP_PROP_FRAME_HEIGHT);
     int width = cap.get(CAP_PROP_FRAME_WIDTH);
 	img = Mat::zeros(height, width, CV_8UC3);
     int bytes = 0;
-
+	uchar *buff;
     // make img continuos
     if(!img.isContinuous()){ 
         img = img.clone();
     }
-	// int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
-    // cap.set(CAP_PROP_FOURCC, codec);
+	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
+    cap.set(CAP_PROP_FOURCC, codec);
 
 	int imgSize = img.total() * img.elemSize();
 	while(!inCall);
     while(inCall){
         // get a frame from the camera
         cap >> img;
-		
-        flip(img, flippedFrame, 1);
+		// cv::imencode(".jpg", img, buff, cv::IMWRITE_JPEG_QUALITY, 85);
+		cvtColor(img, imgGray, CV_BGR2GRAY);
+        flip(imgGray, flippedFrame, 1);
         if ((bytes = send(vsd, flippedFrame.data, imgSize, 0)) < 0){
             std::cerr << "bytes = " << bytes << std::endl;
             break;
