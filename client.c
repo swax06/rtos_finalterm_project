@@ -118,7 +118,7 @@ void* v_out(void *inp) {
             std::cerr << "recv failed, received bytes = " << bytes << std::endl;
         }
         cv::imshow("CV Video Client", img); 
-      	cv::waitKey(10);
+      	cv::waitKey(25);
     } 
 	destroyAllWindows();
 	return inp;
@@ -150,7 +150,7 @@ void* v_inp(void *inp) {
             std::cerr << "bytes = " << bytes << std::endl;
             break;
         }
-		cv::waitKey(10);
+		cv::waitKey(25);
     }
 	return inp;
 }
