@@ -98,6 +98,7 @@ void* clientHandler(void* input) {
 				write(This -> sockts -> sd, "-connecting\0", 12);
 				This -> inCall = true;
 				scall = true;
+				vcall = true;
 			}
 
 			else if(strcmp(buff, "-no") == 0) {

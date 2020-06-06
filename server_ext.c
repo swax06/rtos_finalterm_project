@@ -110,7 +110,7 @@ void* v_call(void *inp) {
 	struct client *This = (struct client *)inp;
 	int i;
 	Mat img;
-	img = Mat::zeros(240 , 320, CV_8UC3);
+	img = Mat::zeros(480 , 640, CV_8UC3);
     int imgSize = img.total() * img.elemSize();
 	while(This -> inCall) {
 		recv(This ->sockts -> vsd, img.data, imgSize , 0);

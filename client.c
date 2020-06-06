@@ -99,7 +99,7 @@ void* s_out(void *inp) {
 
 void* v_out(void *inp) {
 	Mat img;
-	img = Mat::zeros(240 , 320, CV_8UC3);    
+	img = Mat::zeros(480 , 640, CV_8UC3);    
 	int imgSize = img.total() * img.elemSize();
 	uchar *iptr = img.data;
 	int bytes = 0;
@@ -126,19 +126,17 @@ void* v_out(void *inp) {
 
 void* v_inp(void *inp) {
 	Mat img, flippedFrame;
-	// int height = cap.set(CAP_PROP_FRAME_HEIGHT, 240);
-    // int width = cap.set(CAP_PROP_FRAME_WIDTH, 320);
-	cap.set(CAP_PROP_FRAME_HEIGHT, 240);
-    cap.set(CAP_PROP_FRAME_WIDTH, 320);
-	img = Mat::zeros(240, 320, CV_8UC3);
+	int height = cap.get(CAP_PROP_FRAME_HEIGHT);
+    int width = cap.get(CAP_PROP_FRAME_WIDTH);
+	img = Mat::zeros(height, width, CV_8UC3);
     int bytes = 0;
 
     // make img continuos
     if(!img.isContinuous()){ 
         img = img.clone();
     }
-	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
-    cap.set(CAP_PROP_FOURCC, codec);
+	// int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
+    // cap.set(CAP_PROP_FOURCC, codec);
 
 	int imgSize = img.total() * img.elemSize();
 	while(!inCall);
