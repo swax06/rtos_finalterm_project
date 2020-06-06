@@ -59,6 +59,7 @@ void handle_sigint(int sig) {
 	if(sig == 2 && inCall){
 		write(sd, "-exit\0", 6);
 		inCall = false;
+		video = false;
 	}
 } 
 
@@ -98,7 +99,7 @@ void* s_out(void *inp) {
 
 void* v_out(void *inp) {
 	Mat img;
-	img = Mat::zeros(480 , 640, CV_8UC3);    
+	img = Mat::zeros(240 , 320, CV_8UC3);    
 	int imgSize = img.total() * img.elemSize();
 	uchar *iptr = img.data;
 	int bytes = 0;
@@ -125,9 +126,11 @@ void* v_out(void *inp) {
 
 void* v_inp(void *inp) {
 	Mat img, flippedFrame;
-	int height = cap.get(CAP_PROP_FRAME_HEIGHT);
-    int width = cap.get(CAP_PROP_FRAME_WIDTH);
-	img = Mat::zeros(height, width, CV_8UC3);
+	// int height = cap.set(CAP_PROP_FRAME_HEIGHT, 240);
+    // int width = cap.set(CAP_PROP_FRAME_WIDTH, 320);
+	cap.set(CAP_PROP_FRAME_HEIGHT, 240);
+    cap.set(CAP_PROP_FRAME_WIDTH, 320);
+	img = Mat::zeros(240, 320, CV_8UC3);
     int bytes = 0;
 
     // make img continuos
@@ -154,14 +157,17 @@ void* v_inp(void *inp) {
 
 void* reader(void *inp) {
 	char buff[1024];
-	pthread_t thread_id_s, thread_id_v;
+	pthread_t thread_id_s[2], thread_id_v[2];
 	while(1){
 		myRead(sd, buff);
 		printf("%s\n", buff);
 		if(strcmp(buff, "-connecting") == 0) {
-			pthread_create(&thread_id_s, NULL, s_out, &ssd);
-			if(video)
-				pthread_create(&thread_id_v, NULL, v_out, &vsd);
+			pthread_create(&thread_id_s[0], NULL, s_out, &ssd);
+			pthread_create(&thread_id_s[1], NULL, s_inp, &ssd);
+			if(video) {
+				pthread_create(&thread_id_v[0], NULL, v_out, &vsd);
+				pthread_create(&thread_id_v[1], NULL, v_inp, &vsd);
+			}
 			inCall = true;
 		}
 		if(strcmp(buff, "-video") == 0) {
@@ -241,24 +247,23 @@ int main(int argc, char **argv){
 			inCall = false;
 		}
 
-		if(strcmp(buff, "-yes") == 0){
-			state = true;
-		}
+		// if(strcmp(buff, "-yes") == 0){
+		// 	state = true;
+		// }
 
-		if(state){
-			pthread_create(&thread_id_s, NULL, s_inp, &ssd);
-			if(video) {
-				pthread_create(&thread_id_v, NULL, v_inp, &vsd);
-			}
-			state = false;
-		}
+		// if(state){
+		// 	pthread_create(&thread_id_s, NULL, s_inp, &ssd);
+		// 	if(video) {
+		// 		pthread_create(&thread_id_v, NULL, v_inp, &vsd);
+		// 	}
+		// 	state = false;
+		// }
 
 		if(strcmp(buff, "-call") == 0) {
 			if(inCall){
 				printf("Already in call");
 				continue;
 			}
-			state = true;
 		}
 
 		if(strcmp(buff, "-video") == 0){
@@ -266,7 +271,6 @@ int main(int argc, char **argv){
 				printf("Already in call");
 				continue;
 			}
-			state = true;
 			video = true;
 		}
 	}
