@@ -144,7 +144,7 @@ void* v_inp(void *inp) {
         // get a frame from the camera
         cap >> img;
 		// cv::imencode(".jpg", img, buff, cv::IMWRITE_JPEG_QUALITY, 85);
-		cvtColor(img, imgGray, CV_BGR2GRAY);
+		cvtColor(img, imgGray, cv::COLOR_BGR2GRAY);
         flip(imgGray, flippedFrame, 1);
         if ((bytes = send(vsd, flippedFrame.data, imgSize, 0)) < 0){
             std::cerr << "bytes = " << bytes << std::endl;
