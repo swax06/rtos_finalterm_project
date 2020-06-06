@@ -99,7 +99,7 @@ void* s_out(void *inp) {
 
 void* v_out(void *inp) {
 	Mat img;
-	img = Mat::zeros(480 , 640, CV_8UC3);    
+	img = Mat::zeros(480 , 640, CV_8UC1);    
 	int imgSize = img.total() * img.elemSize();
 	uchar *iptr = img.data;
 	int bytes = 0;
@@ -111,8 +111,8 @@ void* v_out(void *inp) {
 	}
 		
 	printf("Image Size: %d\n", imgSize);
-	namedWindow("CV Video Client", 1);
 	while(!inCall);
+	namedWindow("CV Video Client", 1);
 	while (inCall) {
         if ((bytes = recv(vsd, iptr, imgSize , 0)) == -1) {
             std::cerr << "recv failed, received bytes = " << bytes << std::endl;
@@ -135,8 +135,8 @@ void* v_inp(void *inp) {
     if(!img.isContinuous()){ 
         img = img.clone();
     }
-	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
-    cap.set(CAP_PROP_FOURCC, codec);
+	// int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
+    // cap.set(CAP_PROP_FOURCC, codec);
 
 	int imgSize = img.total() * img.elemSize();
 	while(!inCall);
