@@ -120,7 +120,7 @@ void* v_out(void *inp) {
         cv::imshow("CV Video Client", img); 
       	cv::waitKey(10);
     } 
-	// close(vsd);
+	destroyAllWindows();
 	return inp;
 }
 
@@ -150,6 +150,7 @@ void* v_inp(void *inp) {
             std::cerr << "bytes = " << bytes << std::endl;
             break;
         }
+		cv::waitKey(10);
     }
 	return inp;
 }
