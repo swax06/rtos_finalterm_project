@@ -19,5 +19,9 @@ server_ext.o: server_ext.c server_ext.h
 client: client.c
 	$(CC) -o client client.c -lpthread -lpulse-simple -lpulse $(LIBS)
 
+git:
+	git reset --hard origin/master
+	git pull
+
 clean:
 	rm *.o server client
