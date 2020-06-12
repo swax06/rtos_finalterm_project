@@ -1,9 +1,11 @@
 struct client{
-	bool inCall, online;
+	bool inCall, online, video;
 	char name[10];
 	int gp[10], g;
 	struct sockets *sockts;
 	struct session *ptr;
+	pthread_mutex_t mutex;
+	// std::string key;
 };
 struct group{
 	char name[10];

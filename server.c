@@ -4,14 +4,16 @@
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<unistd.h>
-#include<signal.h> 
+#include<signal.h>
+#include<string.h>  
 #include<stdbool.h>
-#include<string.h>
+// #include<string>
 #include<fcntl.h>
 #include<arpa/inet.h>
 #include "server.h"
 #include "server_ext.h"
 #include<pthread.h>
+#include "Twofish.h"
 
 int cli = 0, temp_ind = 0, grp = 0;
 struct client *clients[200];
@@ -32,6 +34,8 @@ void* clientHandler(void* input) {
 	struct session session;
 	struct client *This;
 	pthread_t thread_id_s, thread_id_v;
+	// std::string key(16, 0);
+	// SymAlg *instance = new Twofish(key);
 	myRead(sid.sd, buff);
 	while(i < cli){
 		if(strcmp(buff, clients[i] -> name) == 0){
@@ -46,12 +50,14 @@ void* clientHandler(void* input) {
 		strcpy(clients[cli] -> name, buff);
 		clients[cli] -> g = 0;
 		clients[cli] -> inCall = false;
+		clients[cli] -> video = false;
 		cli++;
 	}
 	clients[i] -> sockts -> sd = sid.sd;
 	clients[i] -> sockts -> ssd = sid.ssd;
 	clients[i] -> sockts -> vsd = sid.vsd;
 	clients[i] -> online = true;
+	// clients[i] -> key = key;
 	This = clients[i];
 	This -> ptr = &session;
 
@@ -59,7 +65,7 @@ void* clientHandler(void* input) {
 	
 	while(1){
 		myRead(sid.sd, buff);
-		
+		// instance.decrypt(buff);
 		if(buff[0] == '-'){
 			if(strcmp(buff, "-users") == 0){
 				send_names(sid.sd);
@@ -94,11 +100,12 @@ void* clientHandler(void* input) {
 				mode = 2;
 			}
 
-			else if(strcmp(buff, "-yes") == 0) {
+			else if(strcmp(buff, "-yes") == 0 && !This -> inCall) {
 				write(This -> sockts -> sd, "-connecting\0", 12);
 				This -> inCall = true;
 				scall = true;
-				vcall = true;
+				if(This -> video)
+					vcall = true;
 			}
 
 			else if(strcmp(buff, "-no") == 0) {
@@ -127,15 +134,9 @@ void* clientHandler(void* input) {
 				session.mem[0] = clients[cl];
 				session.mem[1] = This;
 				session.count = 2;
-				// write(sid.sd, "server: video call?\0", 20);
-				// myRead(sid.sd, buff);
-				
-				// if(strcmp(buff, "1")) 
-				// 	vcall = true;
 				write(clients[cl] -> sockts -> sd, "-incoming call\0", 15);
 				write(sid.sd, "-connecting\0", 12);
 				scall = true;
-				// vcall = true;
 			}
 
 			else if(strcmp(buff, "-grp call") == 0) {
@@ -159,6 +160,7 @@ void* clientHandler(void* input) {
 					if(!groups[cl].mem[i] -> inCall){
 						groups[cl].mem[i] -> ptr = &session;
 						session.mem[j] = groups[cl].mem[i];
+						j++;
 						session.count ++;
 						write(groups[cl].mem[i] -> sockts -> sd, "-incoming call\0", 15);
 					}
@@ -174,6 +176,7 @@ void* clientHandler(void* input) {
 			
 			else if(strcmp(buff, "-video") == 0){
 				This -> inCall = true;
+				This -> video = true;
 				send_names(sid.sd);
 				write(sid.sd, "server: select a user\0", 22);
 				myRead(sid.sd, buff);
@@ -193,6 +196,7 @@ void* clientHandler(void* input) {
 				session.mem[1] = This;
 				session.count = 2;
 				write(clients[cl] -> sockts -> sd, "-video\0", 7);
+				clients[cl] -> video = true;
 				write(clients[cl] -> sockts -> sd, "-incoming call\0", 15);
 				write(sid.sd, "-connecting\0", 12);
 				scall = true;
@@ -238,10 +242,7 @@ void* clientHandler(void* input) {
 			else{
 				write(sid.sd,"server: invalid input\nenter -h for help\0",40);
 			}
-			// if(vcall) {
-			// 	vcall = false;
-			// 	pthread_create(&thread_id_v, NULL, v_call, This);
-			// }
+
 			if(scall) {
 				scall = false;
 				pthread_create(&thread_id_s, NULL, s_call, This);
@@ -262,7 +263,8 @@ void* clientHandler(void* input) {
 				i = 0;
 				while (i < groups[cl].count){
 					sprintf(buff1, "%s@%s : %s%c", This -> name, groups[cl].name, buff, '\0');
-					write(groups[cl].mem[i] -> sockts -> sd, buff1, strlen(buff1) + 1);
+					if(groups[cl].mem[i] != This)
+						write(groups[cl].mem[i] -> sockts -> sd, buff1, strlen(buff1) + 1);
 					i++;
 				}	
 			}

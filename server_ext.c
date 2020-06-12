@@ -9,11 +9,9 @@
 #include<string.h>
 #include<fcntl.h>
 #include<arpa/inet.h>
+#include<pthread.h>
 #include "server.h"
 #include "server_ext.h"
-#include "opencv2/opencv.hpp"
-
-using namespace cv;
 
 int myRead(int sd, char *buff) {
 	int i = 0;
@@ -89,18 +87,23 @@ void* s_call(void *inp) {
 	int i;
 	char buff[256];
 	while(This -> inCall) {
+		// pthread_mutex_lock(&This -> mutex);
 		read(This -> sockts -> ssd, buff, sizeof(buff));
+		// pthread_mutex_unlock(&This -> mutex);
 		i = 0;
 		while(i < This -> ptr -> count){
 			if(This -> ptr -> mem[i] -> inCall && This -> ptr -> mem[i] != This){
+				//pthread_mutex_lock(&This -> ptr -> mem[i] -> mutex);
 				write(This -> ptr -> mem[i] -> sockts -> ssd, buff, sizeof(buff));
+				//pthread_mutex_unlock(&This -> ptr -> mem[i] -> mutex);
 			}
 			i++;
 		}
 
 		if(This -> ptr -> count == 1) {
+			if(This -> inCall == true)
+				write(This -> sockts -> sd, "-call ended\0", 12);
 			This -> inCall = false;
-			write(This -> sockts -> sd, "-call ended\0", 12);
 		}
 	}
 	return inp;
@@ -108,16 +111,15 @@ void* s_call(void *inp) {
 
 void* v_call(void *inp) {
 	struct client *This = (struct client *)inp;
-	int i;
-	Mat img;
-	img = Mat::zeros(480 , 640, CV_8UC1);
-    int imgSize = img.total() * img.elemSize();
+	int i, data_size = 15000, bytes;
+	char data[data_size];
 	while(This -> inCall) {
-		recv(This ->sockts -> vsd, img.data, imgSize , 0);
+		read(This -> sockts -> vsd, data, data_size);
 		i = 0;
 		while(i < This -> ptr -> count){
 			if(This -> ptr -> mem[i] -> inCall && This -> ptr -> mem[i] != This){
-				send(This -> ptr -> mem[i] -> sockts -> vsd, img.data, imgSize, 0);
+				// write(This -> ptr -> mem[i] -> sockts -> vsd, buff, 10);
+        		write(This -> ptr -> mem[i] -> sockts -> vsd, data, data_size);
 			}
 			i++;
 		}
